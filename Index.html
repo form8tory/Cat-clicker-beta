@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cat Clicker</title>
+<link type="images" rel="shortcut icon" href="cat.png">
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playwrite+US+Modern:wght@100..400&display=swap" rel="stylesheet">
+
+<style>
+ @import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
+
+ * {
+  box-sizing: border-box;
+}
+
+body {
+  font-family:playwrite us modern;
+  font-weight: 600;
+  text-align: center;
+  background: linear-gradient(90deg, rgb(148, 11, 127) 0%, rgb(149, 200, 30) 35%, rgb(255, 0, 251) 100%);
+  margin: 0;
+  padding: 20px;
+}
+
+h1 {
+  color: #333;
+}
+
+#counter, #cps-counter {
+  font-size: 2em;
+  margin: 20px;
+}
+
+#cat {
+  width: 200px;
+  margin: 20px auto;
+  margin-bottom: 40px;
+  scale:(2.25);
+  transition: transform 0.1s;
+  cursor: pointer;
+  width: 300px;
+}
+
+#cat:hover {
+  animation: bounce 0.5s;
+}
+#cat:active {
+ scale:(0.45);   
+}
+
+#counter, #cps-counter {
+  font-size: 2em;
+  border: 2px solid #333;
+  border-width: 6px;
+  border-radius: 10px;
+  padding: 10px;
+  display: inline-block;
+  margin: 0 10px; /* Adjust the margin as needed */
+  background-color: #4CAF50;
+}
+
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+#shop-button, #rebirth-button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 15px 30px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.2em;
+  position: fixed;
+  bottom: 10px;
+}
+
+#shop-button:hover, #rebirth-button:hover {
+  background-color: #45a049;
+}
+
+#rebirth-button {
+  right: 10px;
+}
+
+#shop {
+  display: none;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border: 2px solid #555;
+  z-index: 1000;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+#shop::-webkit-scrollbar {
+  width: 10px;
+}
+
+#shop::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+#shop::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+#shop::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+#close-shop {
+  float: right;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 1.5em;
+}
+
+.shop-item {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+}
+
+.shop-item h3 {
+  margin: 0;
+  color: #555;
+}
+
+.shop-item p {
+  margin: 5px 0;
+}
+
+.shop-item button {
+  background-color: #008CBA;
+  color: white;
+  padding: 5px 10px;
+  margin: 5px 0;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+.shop-item button:hover {
+  background-color: #007B9A;
+}
+
+.purchased {
+  background-color: #e7ffe7;
+}
+
+.cookie-consent-container {
+  position: fixed;
+  bottom: -100%; /* Start off-screen */
+  left: 0;
+  right: 0;
+  background: yellow; /* Set the background color to yellow */
+  padding: 10px;
+  z-index: 1000;
+  transition: bottom 0.5s; /* Transition for the 'bottom' property */
+}
+
+.cookie-consent-buttons {
+  margin-left: 15px;
+}
+
+.btn-accept-cookies {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.cookie-consent-content p {
+  margin: 0;
+}
+
+/* When the 'active' class is added, the container moves into view */
+.cookie-consent-container.active {
+  bottom: 0;
+}
+
+
+</style>
+</head>
+<body>
+    <div style="text-align: center;">
+  <div id="counter">Cats: 0</div>
+  <div id="cps-counter">CPS: 0</div>
+</div>
+<img id="cat" src="cat.png" alt="Cute cat" draggable="false">
+
+  <button id="rebirth-button">Rebirth</button>
+  <button id="shop-button">Open Shop</button>
+  <div id="shop">
+    <button id="close-shop">X</button>
+    <div id="whiskerWidgets" class="shop-item">
+      <h3>Whisker Widgets</h3>
+      <p id="whiskerWidgets-price">Price: 50 clicks</p>
+      <p id="whiskerWidgets-cps">+1 CPS</p>
+      <button onclick="buyUpgrade('whiskerWidgets')">Buy</button>
+    </div>
+    <div id="purrfectProcessor" class="shop-item">
+      <h3>Purrfect Processor</h3>
+      <p id="purrfectProcessor-price">Price: 150 clicks</p>
+      <p id="purrfectProcessor-cps">+2 CPS</p>
+      <button onclick="buyUpgrade('purrfectProcessor')">Buy</button>
+    </div>
+    <div id="clawCapacitor" class="shop-item">
+      <h3>Claw Capacitor</h3>
+      <p id="clawCapacitor-price">Price: 300 clicks</p>
+      <p id="clawCapacitor-cps">+4 CPS</p>
+      <button onclick="buyUpgrade('clawCapacitor')">Buy</button>
+    </div>
+    <div id="furballFusionCore" class="shop-item">
+      <h3>Furball Fusion Core</h3>
+      <p id="furballFusionCore-price">Price: 500 clicks</p>
+      <p id="furballFusionCore-cps">+8 CPS</p>
+      <button onclick="buyUpgrade('furballFusionCore')">Buy</button>
+    </div>
+    <div id="meowMixer" class="shop-item">
+      <h3>Meow Mixer</h3>
+      <p id="meowMixer-price">Price: 1000 clicks</p>
+      <p id="meowMixer-cps">+16 CPS</p>
+      <button onclick="buyUpgrade('meowMixer')">Buy</button>
+    </div>
+    <div id="kittyCollider" class="shop-item">
+      <h3>Kitty Collider</h3>
+      <p id="kittyCollider-price">Price: 2000 clicks</p>
+      <p id="kittyCollider-cps">+32 CPS</p>
+      <button onclick="buyUpgrade('kittyCollider')">Buy</button>
+      <div id="tailTuner" class="shop-item">
+        <h3>Tail Tuner</h3>
+        <p id="tailTuner-price">Price: 4000 clicks</p>
+        <p id="tailTuner-cps">+64 CPS</p>
+        <button onclick="buyUpgrade('tailTuner')">Buy</button>
+      </div>
+      <div id="whiskerWarpDrive" class="shop-item">
+        <h3>Whisker Warp Drive</h3>
+        <p id="whiskerWarpDrive-price">Price: 8000 clicks</p>
+        <p id="whiskerWarpDrive-cps">+128 CPS</p>
+        <button onclick="buyUpgrade('whiskerWarpDrive')">Buy</button>
+        <div id="felineFlicker" class="shop-item">
+            <h3>Feline Flicker</h3>
+            <p id="felineFlicker-price">Price: 16000 clicks</p>
+            <p id="felineFlicker-cps">+256 CPS</p>
+            <button onclick="buyUpgrade('felineFlicker')">Buy</button>
+          </div>
+          <div id="purringPowerPlant" class="shop-item">
+            <h3>Purring Power Plant</h3>
+            <p id="purringPowerPlant-price">Price: 32000 clicks</p>
+            <p id="purringPowerPlant-cps">+512 CPS</p>
+            <button onclick="buyUpgrade('purringPowerPlant')">Buy</button>
+          </div>
+          <div id="catnipConverter" class="shop-item">
+            <h3>Catnip Converter</h3>
+            <p id="catnipConverter-price">Price: 64000 clicks</p>
+            <p id="catnipConverter-cps">+1024 CPS</p>
+            <button onclick="buyUpgrade('catnipConverter')">Buy</button>
+          </div>
+          <div id="kittyKraken" class="shop-item">
+            <h3>Kitty Kraken</h3>
+            <p id="kittyKraken-price">Price: 128000 clicks</p>
+            <p id="kittyKraken-cps">+2048 CPS</p>
+            <button onclick="buyUpgrade('kittyKraken')">Buy</button>
+          </div>
+          <div id="meowtoniumReactor" class="shop-item">
+            <h3>Meowtonium Reactor</h3>
+            <p id="meowtoniumReactor-price">Price: 256000 clicks</p>
+            <p id="meowtoniumReactor-cps">+4096 CPS</p>
+            <button onclick="buyUpgrade('meowtoniumReactor')">Buy</button>
+          </div>
+          <div id="quantumPurr" class="shop-item">
+            <h3>Quantum Purr</h3>
+            <p id="quantumPurr-price">Price: 512000 clicks</p>
+            <p id="quantumPurr-cps">+8192 CPS</p>
+            <button onclick="buyUpgrade('quantumPurr')">Buy</button>
+            <div id="cosmicClaws" class="shop-item">
+                <h3>Cosmic Claws</h3>
+                <p id="cosmicClaws-price">Price: 1024000 clicks</p>
+                <p id="cosmicClaws-cps">+16384 CPS</p>
+                <button onclick="buyUpgrade('cosmicClaws')">Buy</button>
+              </div>
+              <div id="nebulaNip" class="shop-item">
+                <h3>Nebula Nip</h3>
+                <p id="nebulaNip-price">Price: 2048000 clicks</p>
+                <p id="nebulaNip-cps">+32768 CPS</p>
+                <button onclick="buyUpgrade('nebulaNip')">Buy</button>
+              </div>
+              <div id="galacticGroomer" class="shop-item">
+                <h3>Galactic Groomer</h3>
+                <p id="galacticGroomer-price">Price: 4096000 clicks</p>
+                <p id="galacticGroomer-cps">+65536 CPS</p>
+                <button onclick="buyUpgrade('galacticGroomer')">Buy</button>
+              </div>
+              <div id="starlightScratcher" class="shop-item">
+                <h3>Starlight Scratcher</h3>
+                <p id="starlightScratcher-price">Price: 8192000 clicks</p>
+                <p id="starlightScratcher-cps">+131072 CPS</p>
+                <button onclick="buyUpgrade('starlightScratcher')">Buy</button>
+              </div>
+              <div id="cometCuddler" class="shop-item">
+                <h3>Comet Cuddler</h3>
+                <p id="cometCuddler-price">Price: 16384000 clicks</p>
+                <p id="cometCuddler-cps">+262144 CPS</p>
+                <button onclick="buyUpgrade('cometCuddler')">Buy</button>
+              </div>
+              <div id="universalPurr" class="shop-item">
+                <h3>Universal Purr</h3>
+                <p id="universalPurr-price">Price: 32768000 clicks</p>
+                <p id="universalPurr-cps">+524288 CPS</p>
+                <button onclick="buyUpgrade('universalPurr')">Buy</button>
+              </div>
+              
+          </div>
+          
+      </div>
+    </div>
+  </div>
+  
+    <!-- Shop items will be added here -->
+  </div>
+  <div id="cookieConsentContainer" class="cookie-consent-container">
+    <div class="cookie-consent-content">
+      <p>This website uses cookies to ensure you get the best experience on our website. <a href="learnmore/Index.html">Learn more</a></p>
+    </div>
+    <div class="cookie-consent-buttons">
+      <button id="acceptCookies" class="btn-accept-cookies">Accept</button>
+    </div>
+  </div>
+  
+
+  <script>
+ document.getElementById('cat').ondragstart = function() { return false; };
+
+
+    let count = 0;
+    function updatetitle() {
+    document.title = Math.round(count) + " Cats - Cat Clicker";
+    };
+
+    var CatClickerTitle = setInterval(function() {
+  updatetitle();
+  }, 1); 
+
+    let cps = 0;
+    const cat = document.getElementById('cat');
+cat.addEventListener('click', function() {
+  cat.classList.add('cat-bounce');
+  // Remove the class after the animation completes
+  setTimeout(() => cat.classList.remove('cat-bounce'), 500);
+});
+
+    const counter = document.getElementById('counter');
+    const cpsCounter = document.getElementById('cps-counter');
+    const shop = document.getElementById('shop');
+    const shopButton = document.getElementById('shop-button');
+    const closeShop = document.getElementById('close-shop');
+    const upgrades = {
+  whiskerWidgets: { cost: 50, baseCps: 1, cps: 1, purchased: false },
+  purrfectProcessor: { cost: 150, baseCps: 2, cps: 2, purchased: false },
+  clawCapacitor: { cost: 300, baseCps: 4, cps: 4, purchased: false },
+  furballFusionCore: { cost: 500, baseCps: 8, cps: 8, purchased: false },
+  meowMixer: { cost: 1000, baseCps: 16, cps: 16, purchased: false },
+  kittyCollider: { cost: 2000, baseCps: 32, cps: 32, purchased: false },
+  tailTuner: { cost: 4000, baseCps: 64, cps: 64, purchased: false },
+  whiskerWarpDrive: { cost: 8000, baseCps: 128, cps: 128, purchased: false },
+  felineFlicker: { cost: 16000, baseCps: 256, cps: 256, purchased: false },
+  purringPowerPlant: { cost: 32000, baseCps: 512, cps: 512, purchased: false },
+  catnipConverter: { cost: 64000, baseCps: 1024, cps: 1024, purchased: false },
+  kittyKraken: { cost: 128000, baseCps: 2048, cps: 2048, purchased: false },
+  meowtoniumReactor: { cost: 256000, baseCps: 4096, cps: 4096, purchased: false },
+  quantumPurr: { cost: 512000, baseCps: 8192, cps: 8192, purchased: false },
+  cosmicClaws: { cost: 1024000, baseCps: 16384, cps: 16384, purchased: false },
+  nebulaNip: { cost: 2048000, baseCps: 32768, cps: 32768, purchased: false },
+  galacticGroomer: { cost: 4096000, baseCps: 65536, cps: 65536, purchased: false },
+  starlightScratcher: { cost: 8192000, baseCps: 131072, cps: 131072, purchased: false },
+  cometCuddler: { cost: 16384000, baseCps: 262144, cps: 262144, purchased: false },
+  universalPurr: { cost: 32768000, baseCps: 524288, cps: 524288, purchased: false }
+};
+
+let rebirthMultiplier = 1;
+let rebirthPrice = 1000000; // Starting price for rebirth is 1 million
+
+function formatNumber(num) {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + 'M';
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'k';
+  }
+  return num.toString();
+}
+
+function buyUpgrade(upgrade) {
+  if (count >= upgrades[upgrade].cost && !upgrades[upgrade].purchased) {
+    count -= upgrades[upgrade].cost;
+    cps += upgrades[upgrade].cps;
+    upgrades[upgrade].purchased = true;
+    counter.textContent = formatNumber(count);
+    document.getElementById(upgrade).classList.add('purchased');
+    document.getElementById(upgrade + '-price').textContent = `Price: ${formatNumber(upgrades[upgrade].cost)} clicks`;
+    document.getElementById(upgrade + '-cps').textContent = `+${upgrades[upgrade].cps} CPS`;
+  }
+}
+
+document.getElementById('rebirth-button').addEventListener('click', function() {
+  if (count >= rebirthPrice) {
+    count = 0;
+    cps = 0;
+    rebirthMultiplier++;
+    for (const upgrade in upgrades) {
+      upgrades[upgrade].purchased = false;
+      upgrades[upgrade].cps = upgrades[upgrade].baseCps * rebirthMultiplier;
+      upgrades[upgrade].cost = Math.ceil(upgrades[upgrade].cost * (1 + rebirthMultiplier / 10)); // Increase cost based on multiplier
+      document.getElementById(upgrade).classList.remove('purchased');
+      document.getElementById(upgrade + '-price').textContent = `Price: ${formatNumber(upgrades[upgrade].cost)} clicks`;
+      document.getElementById(upgrade + '-cps').textContent = `+${upgrades[upgrade].cps} CPS`;
+    }
+    counter.textContent = formatNumber(count);
+    updateCpsDisplay();
+    rebirthPrice *= 2; // Double the price for each Rebirth
+    document.getElementById('rebirth-button').textContent = `Rebirth ${formatNumber(rebirthPrice)}`;
+    swal('Rebirth Successful!', 'You have rebirthed! Your multiplier is now ' + rebirthMultiplier, 'success');
+
+  } else {
+    swal('Insufficient Clicks', 'You do not have enough clicks to rebirth.', 'error');
+
+  }
+});
+
+// Initialize the Rebirth button text
+document.getElementById('rebirth-button').textContent = `Rebirth ${formatNumber(rebirthPrice)}`;
+
+  
+
+    cat.addEventListener('click', function() {
+      count++;
+      counter.textContent = count;
+    });
+
+    shopButton.addEventListener('click', function() {
+      shop.style.display = 'block';
+    });
+
+    closeShop.addEventListener('click', function() {
+      shop.style.display = 'none';
+    });
+
+    function updateCpsDisplay() {
+      cpsCounter.textContent = `CPS: ${cps.toFixed(1)}`;
+    }
+
+    function buyUpgrade(upgrade) {
+      if (count >= upgrades[upgrade].cost && !upgrades[upgrade].purchased) {
+        count -= upgrades[upgrade].cost;
+        cps += upgrades[upgrade].cps;
+        upgrades[upgrade].purchased = true;
+        counter.textContent = count;
+        document.getElementById(upgrade).classList.add('purchased');
+        updateCpsDisplay(); // Update the CPS display
+        // Increase the cost for the next purchase
+        upgrades[upgrade].cost *= 1.5; // Increase cost by 50%
+        upgrades[upgrade].cost = Math.ceil(upgrades[upgrade].cost); // Round up to the nearest whole number
+        document.getElementById(upgrade + '-price').textContent = `Price: ${upgrades[upgrade].cost} clicks`;
+        swal('Purchase Successful', 'You have bought the item!', 'success');
+
+      } else {
+        swal('Purchase Unsuccessful', 'You do not have enough clicks to buy this item.', 'error');
+
+      }
+    }
+
+    setInterval(function() {
+      count += cps;
+      counter.textContent = Math.floor(count);
+      updateCpsDisplay();
+    }, 1000);
+
+    updateCpsDisplay(); // Initialize the CPS display
+  
+function formatNumber(num) {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + 'M';
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'k';
+  }
+  return  num.toString();
+}
+counter.textContent = formatNumber(count);
+
+document.getElementById('cat').addEventListener('mousedown', function() {
+  this.style.transform = 'scale(0.95)';
+});
+
+document.getElementById('cat').addEventListener('mouseup', function() {
+  setTimeout(() => {
+    this.style.transform = 'scale(1)';
+  }, 100); // Delay in milliseconds
+});
+
+// Debounce function to limit the rate of function execution
+function debounce(func, wait) {
+  let timeout;
+  return function() {
+    const context = this, args = arguments;
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(context, args), wait);
+  };
+}
+
+// Function to generate a random color
+function getRandomColor() {
+  const letters = '0123456789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+// Function to interpolate between two colors
+function interpolateColor(color1, color2, factor) {
+  if (arguments.length < 3) { 
+    factor = 0.5; 
+  }
+  var result = color1.slice(1).match(/.{2}/g)
+      .map(function(hex, i) {
+          var value = parseInt(hex, 16);
+          var newValue = Math.round(value + factor * (parseInt(color2.slice(1).match(/.{2}/g)[i], 16) - value));
+          var newHex = newValue.toString(16);
+          return newHex.length === 1 ? "0" + newHex : newHex;
+      });
+  return "#" + result.join('');
+}
+
+// Function to gradually change the background gradient
+function changeBackgroundGradually() {
+  var currentColor1 = getRandomColor();
+  var currentColor2 = getRandomColor();
+  var nextColor1 = getRandomColor();
+  var nextColor2 = getRandomColor();
+  
+  var step = 0;
+  var steps = 20; // Number of steps for the transition
+  var interval = setInterval(function() {
+    document.body.style.background = `linear-gradient(to right, ${interpolateColor(currentColor1, nextColor1, step / steps)}, ${interpolateColor(currentColor2, nextColor2, step / steps)})`;
+    step++;
+    if (step >= steps) {
+      clearInterval(interval);
+      currentColor1 = nextColor1;
+      currentColor2 = nextColor2;
+    }
+  }, 50); // Interval in milliseconds
+}
+
+// Debounced version of the changeBackgroundGradually function
+const debouncedChangeBackgroundGradually = debounce(changeBackgroundGradually, 250); // 250 milliseconds
+
+// Add event listener to cat image
+document.getElementById('cat').addEventListener('click', debouncedChangeBackgroundGradually);
+
+function saveGame() {
+  // Assume you have an object that holds your game state
+  const gameState = {
+    count: count,
+    cps: cps,
+    rebirthMultiplier: rebirthMultiplier,
+    // ... include other game state properties
+  };
+
+  // Convert the gameState object into a string to store in localStorage
+  localStorage.setItem('gameState', JSON.stringify(gameState));
+  swal('Game Saved', 'Your progress has been saved.', 'success');
+}
+
+function loadGame() {
+  // Retrieve the game state from localStorage
+  const savedGameState = localStorage.getItem('gameState');
+
+  // Check if there is a saved game state
+  if (savedGameState) {
+    // Convert the string back to an object
+    const gameState = JSON.parse(savedGameState);
+
+    // Restore the game state
+    count = gameState.count;
+    cps = gameState.cps;
+    rebirthMultiplier = gameState.rebirthMultiplier;
+    // ... restore other game state properties
+
+    swal('Game Loaded', 'Your progress has been loaded.', 'success');
+  } else {
+    swal('No Saved Game', 'No saved progress found.', 'info');
+  }
+};
+
+if (Cookies) {
+window.addEventListener('unload', saveGame);
+
+setInterval(saveGame, 4000);
+
+window.addEventListener('load', loadGame);
+}
+window.onload = function() {
+  var consentContainer = document.getElementById('cookieConsentContainer');
+  var acceptButton = document.getElementById('acceptCookies');
+
+  // Delay the appearance of the popup
+  setTimeout(function() {
+    consentContainer.classList.add('active');
+  }, 1000); // Popup will appear after 1 second
+
+  // Accept cookies and hide the popup gradually
+  acceptButton.onclick = function() {
+    consentContainer.classList.remove('active');
+    // Set a cookie to remember the choice
+    document.cookie = "cookiesAccepted=yes; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/";
+  };
+};
+
+  </script>
+</body>
+</html>
